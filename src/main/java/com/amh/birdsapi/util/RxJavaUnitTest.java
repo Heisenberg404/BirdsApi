@@ -13,12 +13,12 @@ import rx.functions.Func1;
 import rx.schedulers.Schedulers;
 
 public class RxJavaUnitTest {
-
+	
 	public static void main(String[] args) {
 
-//		process6();
+		process6();
 //		finalize1();
-		 process7();
+//		 process7();
 	}
 
 	static void process() {
@@ -181,31 +181,35 @@ public class RxJavaUnitTest {
 	}
 
 	static List<Integer> listaN;
-
+	static Integer cantProcess;
+	static Integer processed; 
+	
 	static void process6() {
 		
 		listaN = new ArrayList<>();
-		Observable<Long> observable1 = Observable.interval(300, TimeUnit.MILLISECONDS).take(20);
-		Observable<Long> observable2 = Observable.interval(100, TimeUnit.MILLISECONDS).take(20);
+		Observable<Long> observable1 = Observable.interval(300, TimeUnit.MILLISECONDS).take(50);
+		Observable<Long> observable2 = Observable.interval(100, TimeUnit.MILLISECONDS).take(50);
 
 		new Thread(() -> procesingOtherThread()).start();
 
+		cantProcess = 100;
+		processed = 1;
+		
 		Observable.merge(observable1, observable2).subscribe(new Action1<Long>() {
 			@Override
 			public void call(Long arg0) {
 				System.out.println(arg0);
 				System.out.println("Hilo:" + Thread.currentThread().getName());
 				listaN.add(Math.toIntExact(arg0));
-
+				processed++;
+				System.out.println("se han procesado " + processed + " de: " + cantProcess);
+				if(processed == cantProcess) {
+					finalize1();
+				}
 			}
 		});
 
-		try {
-			Thread.sleep(20000);
-		} catch (InterruptedException e) {
-			System.out.println(e.getMessage());
-			e.printStackTrace();
-		}
+		
 	}
 
 	static void finalize1() {
@@ -219,10 +223,16 @@ public class RxJavaUnitTest {
 	}
 
 	static void procesingOtherThread() {
-		for (int i = 0; i < 15; i++) {
+		for (int i = 0; i < 3; i++) {
+			
 			System.out.println("Hilo:" + Thread.currentThread().getName());
 			System.out.println("proceso # " + i);
-			
+			try {
+				Thread.sleep(5000);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 	}
 
